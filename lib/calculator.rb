@@ -1,6 +1,8 @@
 require "calculator/version"
+require "calculator/evaluator"
 
 module Calculator
-  class Error < StandardError; end
-  # Your code goes here...
+  def self.eval(expression)
+    Evaluator.new.eval(expression)
+  end
 end
