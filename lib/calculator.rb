@@ -1,5 +1,7 @@
-require "calculator/version"
-require "calculator/evaluator"
+# frozen_string_literal: true
+
+require 'calculator/version'
+require 'calculator/evaluator'
 
 module Calculator
   def self.eval(expression)
