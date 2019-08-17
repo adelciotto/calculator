@@ -33,13 +33,13 @@ module Calculator
         '*': Operator.new(:*, ->(x, y) { x * y }, 3, :left),
         '/': Operator.new(:/, ->(x, y) { x / y }, 3, :left),
         '%': Operator.new(:%, ->(x, y) { x % y }, 3, :left),
-        '^': Operator.new(:^, ->(x, y) { Math.pow(x, y) }, 4, :right),
+        '^': Operator.new(:^, ->(x, y) { x**y }, 4, :right),
         '-_unary': Operator.new(:-, ->(x) { -x }, 4, :right)
       }.freeze
     end
 
     def eval(expression)
-      parse(tokenize(expression))
+      evaluate(parse(tokenize(expression)))
     end
 
     private
@@ -59,31 +59,31 @@ module Calculator
           output << token.to_sym
         elsif @functions.include?(token.to_sym) || token == '('
           stack << token
-        elsif DIGIT_REGEXP.match(token)
+        elsif DIGIT_REGEXP.match(token[0])
           begin
             output << parse_number(token)
           rescue ArgumentError
-            raise Error("failed to parse number #{token}")
+            raise Error, "failed to parse number #{token}"
           end
         elsif @operators.include?(token.to_sym)
           # Only unary operator supported at the moment is '-' for negative numbers.
           if unary_operator?(tokens, token, i)
             stack << '-_unary'
           else
-            output << stack.pop while greater_precedance?(token, stack.last)
+            output << stack.pop.to_sym while greater_precedance?(token, stack.last)
             stack << token
           end
         elsif token == ')'
-          output << stack.pop while stack.last != '('
+          output << stack.pop.to_sym while stack.last != '('
           stack.pop if stack.last == '('
         elsif token == ','
-          output << stack.pop while stack.last != '('
+          output << stack.pop.to_sym while stack.last != '('
         else
-          raise Error("unknown identifier #{token}")
+          raise Error, "unknown identifier #{token}"
         end
       end
 
-      output << stack.pop until stack.empty?
+      output << stack.pop.to_sym until stack.empty?
       output
     end
 
@@ -117,6 +117,31 @@ module Calculator
       Float(token)
     end
 
-    def evaluate(postfix); end
+    def evaluate(postfix)
+      stack = []
+      postfix.each do |item|
+        if item.is_a?(Numeric)
+          stack << item
+        elsif @constants.include?(item)
+          stack << @constants[item]
+        elsif @operators.include?(item)
+          op = @operators[item]
+          if item == '-_unary'.to_sym
+            stack << op.eval_func.call(stack.pop)
+          else
+            rhs, lhs = stack.pop(2)
+            stack << op.eval_func.call(lhs, rhs)
+          end
+        elsif @functions.include?(item)
+          func = @functions[item]
+          args = stack.pop(func.num_args)
+          stack << func.eval_func.call(*args)
+        end
+      end
+
+      return 0 if stack.empty?
+
+      stack.pop
+    end
   end
 end
