@@ -37,11 +37,11 @@ module Calculator
           when HELP_COMMAND
             puts(HELP_MSG)
           when LIST_FUNCTIONS_COMMAND
-            puts(@evaluator.functions)
+            puts(@evaluator.supported_functions)
           when LIST_CONSTANTS_COMMAND
-            puts(@evaluator.constants)
+            puts(@evaluator.supported_constants)
           when LIST_OPERATORS_COMMAND
-            puts(@evaluator.operators)
+            puts(@evaluator.supported_operators)
           when EXIT_COMMAND
             raise Interrupt
           else
@@ -50,7 +50,7 @@ module Calculator
             rescue Error => e
               puts("ERROR: #{e}")
             else
-              puts(format('-> %<result>g', result: result))
+              puts("=> #{result}")
             end
           end
         end
