@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-module Calculator
-  class Error < StandardError; end
+require 'calculator/error'
 
+module Calculator
   Function = Struct.new(:name, :num_args, :eval_func)
-  Operator = Struct.new(:name, :eval_func, :precedance, :associativity)
+  Operator = Struct.new(:name, :eval_func, :precedance, :associativity, :unary)
 
   class Evaluator
     TOKENIZE_REGEXP_PATTERN = '(?<=[ops](?<!e[-+]))|(?=[ops](?<!e[-+]))'
@@ -34,12 +34,30 @@ module Calculator
         '/': Operator.new(:/, ->(x, y) { x / y }, 3, :left),
         '%': Operator.new(:%, ->(x, y) { x % y }, 3, :left),
         '^': Operator.new(:^, ->(x, y) { x**y }, 4, :right),
-        '-_unary': Operator.new(:-, ->(x) { -x }, 4, :right)
+        '-_unary': Operator.new(:-, ->(x) { -x }, 4, :right, true)
       }.freeze
     end
 
     def eval(expression)
       evaluate(parse(tokenize(expression)))
+    end
+
+    def functions
+      @functions.map { |_, func| "#{func.name}: Takes #{func.num_args} parameters" }
+    end
+
+    def constants
+      @constants.map { |name, _| name }
+    end
+
+    def operators
+      @operators.map do |_, op|
+        if op.unary
+          "#{op.name}: Unary operator"
+        else
+          "#{op.name}: Binary operator"
+        end
+      end
     end
 
     private
@@ -61,7 +79,7 @@ module Calculator
           stack << token
         elsif DIGIT_REGEXP.match(token[0])
           begin
-            output << parse_number(token)
+            output << Float(token)
           rescue ArgumentError
             raise Error, "failed to parse number #{token}"
           end
@@ -111,12 +129,6 @@ module Calculator
       @operators.include?(prev_token.to_sym) || prev_token == '('
     end
 
-    def parse_number(token)
-      Integer(token)
-    rescue ArgumentError
-      Float(token)
-    end
-
     def evaluate(postfix)
       stack = []
       postfix.each do |item|
@@ -126,10 +138,10 @@ module Calculator
           stack << @constants[item]
         elsif @operators.include?(item)
           op = @operators[item]
-          if item == '-_unary'.to_sym
+          if op.unary
             stack << op.eval_func.call(stack.pop)
           else
-            rhs, lhs = stack.pop(2)
+            lhs, rhs = stack.pop(2)
             stack << op.eval_func.call(lhs, rhs)
           end
         elsif @functions.include?(item)

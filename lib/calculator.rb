@@ -2,9 +2,11 @@
 
 require 'calculator/version'
 require 'calculator/evaluator'
+require 'calculator/repl'
 
 module Calculator
-  def self.eval(expression)
-    Evaluator.new.eval(expression)
+  def self.start_repl
+    repl = Repl.new(Evaluator.new)
+    repl.start
   end
 end
