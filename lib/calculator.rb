@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'calculator/version'
-require 'calculator/evaluator'
-require 'calculator/repl'
+require "calculator/version"
+require "calculator/evaluator"
+require "calculator/repl"
 
 module Calculator
   def self.start_repl

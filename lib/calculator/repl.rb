@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'readline'
-require 'calculator/error'
-require 'calculator/version'
+require "readline"
+require "calculator/error"
+require "calculator/version"
 
 module Calculator
   WELCOME_MSG = <<~HEREDOC
@@ -15,11 +15,11 @@ module Calculator
     list_constants - Lists all the mathematical constants available (e.g pi)
     list_operators - Lists all the binary and unary operators available (e.g +, -, *)
   HEREDOC
-  HELP_COMMAND = 'help'
-  LIST_FUNCTIONS_COMMAND = 'list_functions'
-  LIST_CONSTANTS_COMMAND = 'list_constants'
-  LIST_OPERATORS_COMMAND = 'list_operators'
-  EXIT_COMMAND = 'exit'
+  HELP_COMMAND = "help"
+  LIST_FUNCTIONS_COMMAND = "list_functions"
+  LIST_CONSTANTS_COMMAND = "list_constants"
+  LIST_OPERATORS_COMMAND = "list_operators"
+  EXIT_COMMAND = "exit"
 
   class Repl
     def initialize(evaluator)
@@ -32,7 +32,7 @@ module Calculator
 
       puts(WELCOME_MSG)
       begin
-        while (input = Readline.readline('> ', true))
+        while (input = Readline.readline("> ", true))
           case input
           when HELP_COMMAND
             puts(HELP_MSG)
@@ -55,7 +55,7 @@ module Calculator
           end
         end
       rescue Interrupt
-        system('stty', stty_save)
+        system("stty", stty_save)
         exit
       end
     end

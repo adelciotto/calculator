@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require 'calculator/error'
+require "calculator/error"
 
 module Calculator
   Function = Struct.new(:name, :num_args, :eval_func)
-  Operator = Struct.new(:name, :eval_func, :precedance, :associativity, :unary) do
+  Operator = Struct.new(:name, :eval_func, :precedance, :associativity, :unary) {
     def <(other)
       if associativity == :left
         precedance <= other.precedance
@@ -12,43 +12,42 @@ module Calculator
         precedance < other.precedance
       end
     end
-  end
+  }
 
   class Evaluator
-    TOKENIZE_REGEXP_PATTERN = '(?<=[ops](?<!e[-+]))|(?=[ops](?<!e[-+]))'
-                              .gsub('ops', '-+*/^%(),').freeze
+    TOKENIZE_REGEXP_PATTERN = "(?<=[ops](?<!e[-+]))|(?=[ops](?<!e[-+]))".gsub("ops", "-+*/^%(),").freeze
     TOKENIZE_REGEXP = Regexp.new(TOKENIZE_REGEXP_PATTERN).freeze
     WHITESPACE_REGEXP = /\A\s*\Z/.freeze
     DIGIT_REGEXP = /\A\d+\z/.freeze
 
     def initialize
-      @constants = { 'pi' => Math::PI, 'e' => Math::E, 'tau' => Math::PI * 2 }.freeze
+      @constants = {"pi" => Math::PI, "e" => Math::E, "tau" => Math::PI * 2}.freeze
 
       # Ensure all the methods in the native ruby Math module
       # are available for the calculator.
       @functions = Math.methods(false)
-                       .map { |method| Math.method(method) }
-                       .each_with_object({}) do |method, result|
-                         # The evaluator doesn't support functions with a variable
-                         # number of args. We will provide support for the variadic
-                         # 'log' method by forcing the user to provide all the args.
-                         arity = method.name == :log ? 2 : method.arity
-                         next unless arity.positive?
+        .map { |method| Math.method(method) }
+        .each_with_object({}) { |method, result|
+        # The evaluator doesn't support functions with a variable
+        # number of args. We will provide support for the variadic
+        # 'log' method by forcing the user to provide all the args.
+        arity = method.name == :log ? 2 : method.arity
+        next unless arity.positive?
 
-                         func = Function.new(method.name, arity, method.to_proc)
-                         result[method.name.to_s] = func
-                         result
-                       end.freeze
+        func = Function.new(method.name, arity, method.to_proc)
+        result[method.name.to_s] = func
+        result
+      }.freeze
 
       # Ensure all binary and unary operators are available for the calculator.
       @operators = {
-        '+' => Operator.new(:+, ->(x, y) { x + y }, 2, :left),
-        '-' => Operator.new(:-, ->(x, y) { x - y }, 2, :left),
-        '*' => Operator.new(:*, ->(x, y) { x * y }, 3, :left),
-        '/' => Operator.new(:/, ->(x, y) { x.fdiv(y) }, 3, :left),
-        '%' => Operator.new(:%, ->(x, y) { x % y }, 3, :left),
-        '^' => Operator.new(:^, ->(x, y) { x**y }, 4, :right),
-        '-_unary' => Operator.new(:-, ->(x) { -x }, 4, :right, true)
+        "+" => Operator.new(:+, ->(x, y) { x + y }, 2, :left),
+        "-" => Operator.new(:-, ->(x, y) { x - y }, 2, :left),
+        "*" => Operator.new(:*, ->(x, y) { x * y }, 3, :left),
+        "/" => Operator.new(:/, ->(x, y) { x.fdiv(y) }, 3, :left),
+        "%" => Operator.new(:%, ->(x, y) { x % y }, 3, :left),
+        "^" => Operator.new(:^, ->(x, y) { x**y }, 4, :right),
+        "-_unary" => Operator.new(:-, ->(x) { -x }, 4, :right, true),
       }.freeze
     end
 
@@ -78,8 +77,8 @@ module Calculator
 
     def tokenize(expression)
       expression.split(TOKENIZE_REGEXP)
-                .reject { |token| token =~ WHITESPACE_REGEXP }
-                .map(&:strip)
+        .reject { |token| token =~ WHITESPACE_REGEXP }
+        .map(&:strip)
     end
 
     def parse(tokens)
@@ -89,7 +88,7 @@ module Calculator
       tokens.each_with_index do |token, i|
         if @constants.include?(token)
           output << token
-        elsif @functions.include?(token) || token == '('
+        elsif @functions.include?(token) || token == "("
           stack << token
         elsif DIGIT_REGEXP.match(token[0])
           begin
@@ -100,16 +99,16 @@ module Calculator
         elsif @operators.include?(token)
           # Only unary operator supported at the moment is '-' for negative numbers.
           if unary_operator?(tokens, token, i)
-            stack << '-_unary'
+            stack << "-_unary"
           else
             output << stack.pop while greater_precedance?(token, stack.last)
             stack << token
           end
-        elsif token == ')'
-          output << stack.pop while stack.last != '('
-          stack.pop if stack.last == '('
-        elsif token == ','
-          output << stack.pop while stack.last != '('
+        elsif token == ")"
+          output << stack.pop while stack.last != "("
+          stack.pop if stack.last == "("
+        elsif token == ","
+          output << stack.pop while stack.last != "("
         else
           raise Error, "unknown identifier #{token}"
         end
@@ -127,18 +126,18 @@ module Calculator
 
     def greater_precedance?(token, stack_item)
       return true if @functions.include?(stack_item)
-      return false unless stack_item != '('
+      return false unless stack_item != "("
       return false unless @operators.include?(stack_item)
 
       @operators[token] < @operators[stack_item]
     end
 
     def unary_operator?(tokens, token, index)
-      return false unless token == '-'
+      return false unless token == "-"
       return true if index.zero?
 
       prev_token = tokens[index - 1]
-      @operators.include?(prev_token) || prev_token == '('
+      @operators.include?(prev_token) || prev_token == "("
     end
 
     def evaluate(postfix)

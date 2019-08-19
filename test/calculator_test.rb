@@ -1,13 +1,9 @@
 # frozen_string_literal: true
 
-require 'test_helper'
+require "test_helper"
 
-class CalculatorTest < Minitest::Test
-  def test_that_it_has_a_version_number
-    refute_nil ::Calculator::VERSION
-  end
-
-  def test_it_does_something_useful
-    assert false
+describe "Calculator" do
+  it "has a version number" do
+    expect(::Calculator::VERSION).wont_be_nil
   end
 end
