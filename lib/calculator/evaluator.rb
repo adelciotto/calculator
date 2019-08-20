@@ -15,13 +15,13 @@ module Calculator
   }
 
   class Evaluator
-    TOKENIZE_REGEXP_PATTERN = "(?<=[ops](?<!e[-+]))|(?=[ops](?<!e[-+]))".gsub("ops", "-+*/^%(),").freeze
+    TOKENIZE_REGEXP_PATTERN = "(?<=[ops](?<![eE][-+]))|(?=[ops](?<![eE][-+]))".gsub("ops", "-+*/^%(),").freeze
     TOKENIZE_REGEXP = Regexp.new(TOKENIZE_REGEXP_PATTERN).freeze
     WHITESPACE_REGEXP = /\A\s*\Z/.freeze
     DIGIT_REGEXP = /\A\d+\z/.freeze
 
     def initialize
-      @constants = {"pi" => Math::PI, "e" => Math::E, "tau" => Math::PI * 2}.freeze
+      @constants = {"Pi" => Math::PI, "E" => Math::E, "Tau" => Math::PI * 2}.freeze
 
       # Ensure all the methods in the native ruby Math module
       # are available for the calculator.
@@ -163,7 +163,6 @@ module Calculator
       end
 
       return 0 if stack.empty?
-
       stack.pop
     end
   end
