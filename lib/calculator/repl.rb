@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "readline"
-require "calculator/error"
+require "calculator/evaluator_errors"
 require "calculator/version"
 
 module Calculator
@@ -10,10 +10,10 @@ module Calculator
     Type exit, CTRL-C or CTRL-D to quit the program. Built by adelciotto.
   HEREDOC
   HELP_MSG = <<~HEREDOC
-    exit - Quits the program
     list_functions - Lists all the mathematical functions available (e.g sin, cos)
     list_constants - Lists all the mathematical constants available (e.g pi)
     list_operators - Lists all the binary and unary operators available (e.g +, -, *)
+    exit - Quits the program
   HEREDOC
   HELP_COMMAND = "help"
   LIST_FUNCTIONS_COMMAND = "list_functions"
@@ -47,7 +47,7 @@ module Calculator
           else
             begin
               result = @evaluator.eval(input)
-            rescue Error => e
+            rescue EvaluatorError => e
               puts("ERROR: #{e}")
             else
               puts("=> #{result}")

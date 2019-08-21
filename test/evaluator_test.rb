@@ -3,11 +3,38 @@
 require "test_helper"
 
 describe "Calculator::Evaluator" do
-  subject { evaluator }
-
-  let(:evaluator) { Calculator::Evaluator.new }
+  subject { Calculator::Evaluator.new }
 
   describe "#eval" do
+    describe "when the input is nil" do
+      it "returns nil" do
+        subject.eval(nil).must_be_nil
+      end
+    end
+
+    describe "when the input is not a String" do
+      let(:expectations) do
+        [
+          Expectation.new(input: 1, output: "expected a String, got Integer"),
+          Expectation.new(input: 1.23, output: "expected a String, got Float"),
+          Expectation.new(input: true, output: "expected a String, got TrueClass"),
+          Expectation.new(input: false, output: "expected a String, got FalseClass"),
+          Expectation.new(input: [], output: "expected a String, got Array"),
+          Expectation.new(input: [1, 2], output: "expected a String, got Array"),
+          Expectation.new(input: {}, output: "expected a String, got Hash"),
+          Expectation.new(input: {a: 1, b: 2}, output: "expected a String, got Hash"),
+        ]
+      end
+
+      it "raises a TypeError" do
+        expectations.each do |expected|
+          error = -> { subject.eval(expected.input) }.must_raise TypeError,
+           "raises a TypeError with input #{expected.input}"
+           error.message.must_equal expected.output, "error has correct error message with input #{expected.input}"
+        end
+      end
+    end
+
     describe "when the input is a valid number" do
       let(:expectations) do
         [
@@ -43,28 +70,104 @@ describe "Calculator::Evaluator" do
     describe "when the input is a invalid number" do
       let(:expectations) do
         [
-          Expectation.new(input: "1 1", output: "failed to parse number 1 1"),
-          Expectation.new(input: "-1 1", output: "failed to parse number 1 1"),
-          Expectation.new(input: "1abc", output: "failed to parse number 1abc"),
-          Expectation.new(input: "-1abc", output: "failed to parse number 1abc"),
-          Expectation.new(input: "e1", output: "unknown identifier e1"),
-          Expectation.new(input: "-e1", output: "unknown identifier e1"),
-          Expectation.new(input: "e-1", output: "unknown identifier e-1"),
-          Expectation.new(input: "e+1", output: "unknown identifier e+1"),
-          Expectation.new(input: "1.2e", output: "failed to parse number 1.2e"),
-          Expectation.new(input: "1.2e*3", output: "failed to parse number 1.2e"),
-          Expectation.new(input: "1.2e3.4", output: "failed to parse number 1.2e3.4"),
-          Expectation.new(input: "1.2e-3.4", output: "failed to parse number 1.2e-3.4"),
-          Expectation.new(input: "1.2e+3.4", output: "failed to parse number 1.2e+3.4"),
+          Expectation.new(input: "1 1", output: Calculator::ParseNumberError),
+          Expectation.new(input: "-1 1", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1abc", output: Calculator::ParseNumberError),
+          Expectation.new(input: "-1abc", output: Calculator::ParseNumberError),
+          Expectation.new(input: "e1", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "-e1", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "e-1", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "e+1", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "1.2e", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1.2e*3", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1.2e3.4", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1.2e-3.4", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1.2e+3.4", output: Calculator::ParseNumberError),
         ]
       end
 
-      it "raises a Calculator::Error" do
+      it "raises a Calculator::EvaluatorError" do
         expectations.each do |expected|
-          err = -> { subject.eval(expected.input) }.must_raise Calculator::Error,
-           "raises Calculator::Error with input #{expected.input}"
-          err.message.must_match expected.output, "raises correct error msg with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise expected.output,
+           "raises a Calculator::EvaluatorError with input #{expected.input}"
         end
+      end
+    end
+
+    describe "when the input is a valid constant" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "Pi", output: Math::PI),
+          Expectation.new(input: "E", output: Math::E),
+          Expectation.new(input: "Tau", output: Math::PI * 2),
+        ]
+      end
+
+      it "returns the constant value" do
+        expectations.each do |expected|
+          subject.eval(expected.input).must_equal expected.output,
+            "returns correct result with input #{expected.input}"
+        end
+      end
+    end
+
+    describe "when the input is a invalid constant" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "pi", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "PI", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "e", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "tau", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "TAU", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "unknown", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "nil", output: Calculator::UnknownTokenError),
+        ]
+      end
+
+      it "raises a Calculator::EvaluatorError" do
+        expectations.each do |expected|
+          -> { subject.eval(expected.input) }.must_raise expected.output,
+           "raises a Calculator::EvaluatorError with input #{expected.input}"
+        end
+      end
+    end
+
+    describe "when the input is a valid function" do
+      describe "with the correct number of arguments" do
+        it "returns the correct value" do
+        end
+      end
+
+      describe "with the too many arguments" do
+        it "raises a Calculator::Error" do
+        end
+      end
+
+      describe "with the too few arguments" do
+        it "raises a Calculator::Error" do
+        end
+      end
+    end
+
+    describe "when the input is a invalid function" do
+      it "raises a Calculator::Error" do
+      end
+    end
+
+    describe "when the input is a valid binary operator" do
+      describe "with two operands" do
+        it "returns the correct value" do
+        end
+      end
+
+      describe "with one operand" do
+        it "raises a Calculator::Error" do
+        end
+      end
+    end
+
+    describe "when the input is a invalid binary operator" do
+      it "raises a Calculator::Error" do
       end
     end
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "calculator/error"
+require "calculator/evaluator_errors"
 
 module Calculator
   Function = Struct.new(:name, :num_args, :eval_func)
@@ -52,7 +52,10 @@ module Calculator
     end
 
     def eval(expression)
-      evaluate(parse(tokenize(expression)))
+      return nil if expression.nil?
+      raise TypeError, "expected a String, got #{expression.class.name}" unless expression.is_a?(String)
+
+      evaluate(parse(tokenize(expression.to_s)))
     end
 
     def supported_functions
@@ -94,7 +97,7 @@ module Calculator
           begin
             output << parse_number(token)
           rescue ArgumentError
-            raise Error, "failed to parse number #{token}"
+            raise ParseNumberError, token
           end
         elsif @operators.include?(token)
           # Only unary operator supported at the moment is '-' for negative numbers.
@@ -110,7 +113,7 @@ module Calculator
         elsif token == ","
           output << stack.pop while stack.last != "("
         else
-          raise Error, "unknown identifier #{token}"
+          raise UnknownTokenError, token
         end
       end
 
