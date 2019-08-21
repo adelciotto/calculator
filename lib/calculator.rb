@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "calculator/version"
 require "calculator/evaluator"
 require "calculator/repl"

@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Calculator
   class EvaluatorError < StandardError
     def initialize(msg = "failed to evaluate expression")

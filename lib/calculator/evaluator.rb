@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "calculator/evaluator_errors"
 
 module Calculator

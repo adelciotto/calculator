@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "readline"
 require "calculator/evaluator_errors"
 require "calculator/version"
