@@ -4,15 +4,10 @@ describe "Calculator::Evaluator" do
   subject { Calculator::Evaluator.new }
 
   describe "#eval" do
-    describe "when the input is nil" do
-      it "returns nil" do
-        subject.eval(nil).must_be_nil
-      end
-    end
-
     describe "when the input is not a String" do
       let(:expectations) do
         [
+          Expectation.new(input: nil, output: "expected a String, got NilClass"),
           Expectation.new(input: 1, output: "expected a String, got Integer"),
           Expectation.new(input: 1.23, output: "expected a String, got Float"),
           Expectation.new(input: true, output: "expected a String, got TrueClass"),
@@ -28,7 +23,46 @@ describe "Calculator::Evaluator" do
         expectations.each do |expected|
           error = -> { subject.eval(expected.input) }.must_raise TypeError,
            "raises a TypeError with input #{expected.input}"
-           error.message.must_equal expected.output, "error has correct error message with input #{expected.input}"
+          error.message.must_equal expected.output, "error has correct error message with input #{expected.input}"
+        end
+      end
+    end
+
+    describe "when the input has no whitespace between tokens" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "1+2", output: 3),
+          Expectation.new(input: "1+2-3*4/5%6^7", output: 0.6000000000000001),
+          Expectation.new(input: "1*(2*3)", output: 6),
+          Expectation.new(input: "1+atan2(2,3)", output: 1 + Math.atan2(2, 3)),
+          Expectation.new(input: "1+atan2(Pi,Tau)", output: 1 + Math.atan2(Math::PI, Math::PI * 2)),
+        ]
+      end
+
+      it "returns the correct result" do
+        expectations.each do |expected|
+          subject.eval(expected.input).must_equal expected.output,
+            "returns correct result with input #{expected.input}"
+        end
+      end
+    end
+
+    describe "when the input has a mix of whitespace and no whitespace between tokens" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "1+ 2", output: 3),
+          Expectation.new(input: "1+2 -3*4/ 5%6 ^ 7", output: 0.6000000000000001),
+          Expectation.new(input: "1 *( 2* 3)", output: 6),
+          Expectation.new(input: "1+atan2(2, 3)", output: 1 + Math.atan2(2, 3)),
+          Expectation.new(input: "1+ atan2( Pi,Tau )", output: 1 + Math.atan2(Math::PI, Math::PI * 2)),
+          Expectation.new(input: "atan2 ( Pi,Tau )", output: Math.atan2(Math::PI, Math::PI * 2)),
+        ]
+      end
+
+      it "returns the correct result" do
+        expectations.each do |expected|
+          subject.eval(expected.input).must_equal expected.output,
+            "returns correct result with input #{expected.input}"
         end
       end
     end
@@ -68,26 +102,26 @@ describe "Calculator::Evaluator" do
     describe "when the input is a invalid number" do
       let(:expectations) do
         [
-          Expectation.new(input: "1 1", output: Calculator::ParseNumberError),
-          Expectation.new(input: "-1 1", output: Calculator::ParseNumberError),
-          Expectation.new(input: "1abc", output: Calculator::ParseNumberError),
-          Expectation.new(input: "-1abc", output: Calculator::ParseNumberError),
-          Expectation.new(input: "e1", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "-e1", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "e-1", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "e+1", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "1.2e", output: Calculator::ParseNumberError),
-          Expectation.new(input: "1.2e*3", output: Calculator::ParseNumberError),
-          Expectation.new(input: "1.2e3.4", output: Calculator::ParseNumberError),
-          Expectation.new(input: "1.2e-3.4", output: Calculator::ParseNumberError),
-          Expectation.new(input: "1.2e+3.4", output: Calculator::ParseNumberError),
+          Expectation.new(input: "1 1"),
+          Expectation.new(input: "-1 1"),
+          Expectation.new(input: "1abc"),
+          Expectation.new(input: "-1abc"),
+          Expectation.new(input: "e1"),
+          Expectation.new(input: "-e1"),
+          Expectation.new(input: "e-1"),
+          Expectation.new(input: "e+1"),
+          Expectation.new(input: "1.2e"),
+          Expectation.new(input: "1.2e*3"),
+          Expectation.new(input: "1.2e3.4"),
+          Expectation.new(input: "1.2e-3.4"),
+          Expectation.new(input: "1.2e+3.4"),
         ]
       end
 
-      it "raises a Calculator::EvaluatorError" do
+      it "raises a Calculator::ParseTokenError" do
         expectations.each do |expected|
-          -> { subject.eval(expected.input) }.must_raise expected.output,
-           "raises a Calculator::EvaluatorError with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
+           "raises a Calculator::Error with input #{expected.input}"
         end
       end
     end
@@ -112,60 +146,167 @@ describe "Calculator::Evaluator" do
     describe "when the input is a invalid constant" do
       let(:expectations) do
         [
-          Expectation.new(input: "pi", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "PI", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "e", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "tau", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "TAU", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "unknown", output: Calculator::UnknownTokenError),
-          Expectation.new(input: "nil", output: Calculator::UnknownTokenError),
+          Expectation.new(input: "pi"),
+          Expectation.new(input: "PI"),
+          Expectation.new(input: "e"),
+          Expectation.new(input: "tau"),
+          Expectation.new(input: "TAU"),
+          Expectation.new(input: "unknown"),
+          Expectation.new(input: "nil"),
         ]
       end
 
-      it "raises a Calculator::EvaluatorError" do
+      it "raises a Calculator::ParseTokenError" do
         expectations.each do |expected|
-          -> { subject.eval(expected.input) }.must_raise expected.output,
-           "raises a Calculator::EvaluatorError with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
+           "raises a Calculator::ParseTokenError with input #{expected.input}"
         end
       end
     end
 
     describe "when the input is a valid function" do
       describe "with the correct number of arguments" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "atan(1)", output: Math.atan(1)),
+            Expectation.new(input: "cosh(1)", output: Math.cosh(1)),
+            Expectation.new(input: "sinh(1)", output: Math.sinh(1)),
+            Expectation.new(input: "tanh(1)", output: Math.tanh(1)),
+            Expectation.new(input: "acosh(1)", output: Math.acosh(1)),
+            Expectation.new(input: "asinh(1)", output: Math.asinh(1)),
+            Expectation.new(input: "atanh(1)", output: Math.atanh(1)),
+            Expectation.new(input: "exp(1)", output: Math.exp(1)),
+            Expectation.new(input: "log(1, 2)", output: Math.log(1, 2)),
+            Expectation.new(input: "log2(1)", output: Math.log2(1)),
+            Expectation.new(input: "log10(1)", output: Math.log10(1)),
+            Expectation.new(input: "cbrt(1)", output: Math.cbrt(1)),
+            Expectation.new(input: "frexp(1)", output: Math.frexp(1)),
+            Expectation.new(input: "ldexp(1, 2)", output: Math.ldexp(1, 2)),
+            Expectation.new(input: "hypot(1, 2)", output: Math.hypot(1, 2)),
+            Expectation.new(input: "erf(1)", output: Math.erf(1)),
+            Expectation.new(input: "erfc(1)", output: Math.erfc(1)),
+            Expectation.new(input: "gamma(1)", output: Math.gamma(1)),
+            Expectation.new(input: "lgamma(1)", output: Math.lgamma(1)),
+            Expectation.new(input: "sqrt(1)", output: Math.sqrt(1)),
+            Expectation.new(input: "atan2(1, 2)", output: Math.atan2(1, 2)),
+            Expectation.new(input: "cos(1)", output: Math.cos(1)),
+            Expectation.new(input: "sin(1)", output: Math.sin(1)),
+            Expectation.new(input: "tan(1)", output: Math.tan(1)),
+            Expectation.new(input: "acos(1)", output: Math.acos(1)),
+            Expectation.new(input: "asin(1)", output: Math.asin(1)),
+          ]
+        end
+
         it "returns the correct value" do
+          expectations.each do |expected|
+            subject.eval(expected.input).must_equal expected.output,
+              "returns correct result with input #{expected.input}"
+          end
         end
       end
 
       describe "with the too many arguments" do
-        it "raises a Calculator::Error" do
+        it "raises a Calculator::ArgumentError" do
         end
       end
 
       describe "with the too few arguments" do
-        it "raises a Calculator::Error" do
+        it "raises a Calculator::ArgumentError" do
         end
       end
     end
 
     describe "when the input is a invalid function" do
-      it "raises a Calculator::Error" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "foo(1)"),
+          Expectation.new(input: "bar(Pi)"),
+          Expectation.new(input: "unknown(1, 2)"),
+          Expectation.new(input: "sinn(1)"),
+          Expectation.new(input: "coss(2)"),
+          Expectation.new(input: "tanhh(3)"),
+        ]
+      end
+
+      it "raises a Calculator::ParseTokenError" do
+        expectations.each do |expected|
+          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
+           "raises a Calculator::ParseTokenError with input #{expected.input}"
+        end
       end
     end
 
     describe "when the input is a valid binary operator" do
       describe "with two operands" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "1 + 2", output: 3),
+            Expectation.new(input: "1 - 2", output: -1),
+            Expectation.new(input: "1 * 2", output: 2),
+            Expectation.new(input: "1 / 2", output: 0.5),
+            Expectation.new(input: "1 % 2", output: 1),
+            Expectation.new(input: "2 ^ 2", output: 4),
+          ]
+        end
+
         it "returns the correct value" do
+          expectations.each do |expected|
+            subject.eval(expected.input).must_equal expected.output,
+              "returns correct result with input #{expected.input}"
+          end
         end
       end
 
       describe "with one operand" do
-        it "raises a Calculator::Error" do
+        it "raises a Calculator::OperandError" do
+        end
+      end
+
+      describe "with no operands" do
+        it "raises a Calculator::OperandError" do
+        end
+      end
+
+      describe "when dividing by zero" do
+        it "raises a Calculator::DivideByZeroError" do
         end
       end
     end
 
     describe "when the input is a invalid binary operator" do
-      it "raises a Calculator::Error" do
+      let(:expectations) do
+        [
+          Expectation.new(input: "1 ! 2"),
+          Expectation.new(input: "!1"),
+          Expectation.new(input: "1 @ 2"),
+          Expectation.new(input: "1 # 2"),
+          Expectation.new(input: "1 $ 2"),
+          Expectation.new(input: "$1"),
+          Expectation.new(input: "1 & 2"),
+          Expectation.new(input: "1 = 2"),
+          Expectation.new(input: "1 == 2"),
+          Expectation.new(input: "1 != 2"),
+          Expectation.new(input: "1 \ 2"),
+        ]
+      end
+
+      it "raises a Calculator::ParseTokenError" do
+        expectations.each do |expected|
+          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
+           "raises a Calculator::ParseTokenError with input #{expected.input}"
+        end
+      end
+    end
+
+    describe "when the input is an expression within paranthesis" do
+      describe "when the paranthesis are matched" do
+        it "returns the correct result" do
+        end
+      end
+
+      describe "when the paranthesis are unmatched" do
+        it "raises a Calculator::UnamatchedParanthesis" do
+        end
       end
     end
   end

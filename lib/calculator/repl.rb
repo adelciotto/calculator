@@ -1,5 +1,5 @@
 require "readline"
-require "calculator/evaluator_errors"
+require "calculator/errors"
 require "calculator/version"
 
 module Calculator
@@ -45,7 +45,7 @@ module Calculator
           else
             begin
               result = @evaluator.eval(input)
-            rescue EvaluatorError => e
+            rescue Error => e
               puts("ERROR: #{e}")
             else
               puts("=> #{result}")

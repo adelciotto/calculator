@@ -1,4 +1,4 @@
-require "calculator/evaluator_errors"
+require "calculator/errors"
 
 module Calculator
   Function = Struct.new(:name, :num_args, :eval_func)
@@ -13,7 +13,8 @@ module Calculator
   }
 
   class Evaluator
-    TOKENIZE_REGEXP_PATTERN = "(?<=[ops](?<![eE][-+]))|(?=[ops](?<![eE][-+]))".gsub("ops", "-+*/^%(),").freeze
+    TOKENIZE_REGEXP_PATTERN = "(?<=[ops](?<![eE][-+]))|(?=[ops](?<![eE][-+]))"
+      .gsub("ops", "-+*/^%(),").freeze
     TOKENIZE_REGEXP = Regexp.new(TOKENIZE_REGEXP_PATTERN).freeze
     WHITESPACE_REGEXP = /\A\s*\Z/.freeze
     DIGIT_REGEXP = /\A\d+\z/.freeze
@@ -50,10 +51,9 @@ module Calculator
     end
 
     def eval(expression)
-      return nil if expression.nil?
       raise TypeError, "expected a String, got #{expression.class.name}" unless expression.is_a?(String)
 
-      evaluate(parse(tokenize(expression.to_s)))
+      evaluate(parse(tokenize(expression)))
     end
 
     def supported_functions
@@ -95,7 +95,7 @@ module Calculator
           begin
             output << parse_number(token)
           rescue ArgumentError
-            raise ParseNumberError, token
+            raise ParseTokenError, token
           end
         elsif @operators.include?(token)
           # Only unary operator supported at the moment is '-' for negative numbers.
@@ -111,7 +111,7 @@ module Calculator
         elsif token == ","
           output << stack.pop while stack.last != "("
         else
-          raise UnknownTokenError, token
+          raise ParseTokenError, token
         end
       end
 
