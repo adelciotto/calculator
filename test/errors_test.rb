@@ -27,3 +27,23 @@ describe "Calculator::ParseTokenError" do
     end
   end
 end
+
+describe "Calculator::OperandError" do
+  describe "when raised" do
+    it "displays the correct error message" do
+      raise Calculator::OperandError.new("+", 2)
+    rescue Calculator::OperandError => error
+      error.message.must_equal "incorrect number of operands for operator +, expected 2"
+    end
+  end
+end
+
+describe "Calculator::DivideByZeroError" do
+  describe "when raised" do
+    it "displays the correct error message" do
+      raise Calculator::DivideByZeroError
+    rescue Calculator::DivideByZeroError => error
+      error.message.must_equal "divided by zero"
+    end
+  end
+end

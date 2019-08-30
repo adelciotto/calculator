@@ -106,10 +106,6 @@ describe "Calculator::Evaluator" do
           Expectation.new(input: "-1 1"),
           Expectation.new(input: "1abc"),
           Expectation.new(input: "-1abc"),
-          Expectation.new(input: "e1"),
-          Expectation.new(input: "-e1"),
-          Expectation.new(input: "e-1"),
-          Expectation.new(input: "e+1"),
           Expectation.new(input: "1.2e"),
           Expectation.new(input: "1.2e*3"),
           Expectation.new(input: "1.2e3.4"),
@@ -152,14 +148,18 @@ describe "Calculator::Evaluator" do
           Expectation.new(input: "tau"),
           Expectation.new(input: "TAU"),
           Expectation.new(input: "unknown"),
+          Expectation.new(input: "e1"),
+          Expectation.new(input: "-e1"),
+          Expectation.new(input: "e-1"),
+          Expectation.new(input: "e+1"),
           Expectation.new(input: "nil"),
         ]
       end
 
-      it "raises a Calculator::ParseTokenError" do
+      it "raises a Calculator::UnexpectedTokenError" do
         expectations.each do |expected|
-          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
-           "raises a Calculator::ParseTokenError with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise Calculator::UnexpectedTokenError,
+           "raises a Calculator::UnexpectedTokenError with input #{expected.input}"
         end
       end
     end
@@ -206,12 +206,88 @@ describe "Calculator::Evaluator" do
       end
 
       describe "with the too many arguments" do
-        it "raises a Calculator::ArgumentError" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "atan(1, 2)"),
+            Expectation.new(input: "cosh(1, 2)"),
+            Expectation.new(input: "sinh(1, 2)"),
+            Expectation.new(input: "tanh(1, 2)"),
+            Expectation.new(input: "acosh(1, 2)"),
+            Expectation.new(input: "asinh(1, 2)"),
+            Expectation.new(input: "atanh(1, 2)"),
+            Expectation.new(input: "exp(1, 2)"),
+            Expectation.new(input: "log(1, 2, 3)"),
+            Expectation.new(input: "log2(1, 2)"),
+            Expectation.new(input: "log10(1, 2)"),
+            Expectation.new(input: "cbrt(1, 2)"),
+            Expectation.new(input: "frexp(1, 2)"),
+            Expectation.new(input: "ldexp(1, 2, 3)"),
+            Expectation.new(input: "hypot(1, 2, 3)"),
+            Expectation.new(input: "erf(1, 2)"),
+            Expectation.new(input: "erfc(1, 2)"),
+            Expectation.new(input: "gamma(1, 2)"),
+            Expectation.new(input: "lgamma(1, 2)"),
+            Expectation.new(input: "sqrt(1, 2)"),
+            Expectation.new(input: "atan2(1, 2, 2)"),
+            Expectation.new(input: "cos(1, 2)"),
+            Expectation.new(input: "sin(1, 2)"),
+            Expectation.new(input: "tan(1, 2)"),
+            Expectation.new(input: "acos(1, 2)"),
+            Expectation.new(input: "asin(1, 2)"),
+            Expectation.new(input: "atan(1, 2, 3, 4, 5, 6)"),
+          ]
+        end
+
+        it "raises a Calculator::FunctionArgumentError" do
+          expectations.each do |expected|
+            -> { subject.eval(expected.input) }.must_raise Calculator::FunctionArgumentError,
+             "raises a Calculator::FunctionArgumentError with input #{expected.input}"
+          end
         end
       end
 
       describe "with the too few arguments" do
-        it "raises a Calculator::ArgumentError" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "atan()"),
+            Expectation.new(input: "cosh()"),
+            Expectation.new(input: "sinh()"),
+            Expectation.new(input: "tanh()"),
+            Expectation.new(input: "acosh()"),
+            Expectation.new(input: "asinh()"),
+            Expectation.new(input: "atanh()"),
+            Expectation.new(input: "exp()"),
+            Expectation.new(input: "log(1)"),
+            Expectation.new(input: "log()"),
+            Expectation.new(input: "log2()"),
+            Expectation.new(input: "log10()"),
+            Expectation.new(input: "cbrt()"),
+            Expectation.new(input: "frexp()"),
+            Expectation.new(input: "ldexp(1)"),
+            Expectation.new(input: "ldexp()"),
+            Expectation.new(input: "hypot(1)"),
+            Expectation.new(input: "hypot()"),
+            Expectation.new(input: "erf()"),
+            Expectation.new(input: "erfc()"),
+            Expectation.new(input: "gamma()"),
+            Expectation.new(input: "lgamma()"),
+            Expectation.new(input: "sqrt()"),
+            Expectation.new(input: "atan2(1)"),
+            Expectation.new(input: "atan2()"),
+            Expectation.new(input: "cos()"),
+            Expectation.new(input: "sin()"),
+            Expectation.new(input: "tan()"),
+            Expectation.new(input: "acos()"),
+            Expectation.new(input: "asin()"),
+            Expectation.new(input: "atan"),
+          ]
+        end
+
+        it "raises a Calculator::FunctionArgumentError" do
+          expectations.each do |expected|
+            -> { subject.eval(expected.input) }.must_raise Calculator::FunctionArgumentError,
+             "raises a Calculator::FunctionArgumentError with input #{expected.input}"
+          end
         end
       end
     end
@@ -224,14 +300,15 @@ describe "Calculator::Evaluator" do
           Expectation.new(input: "unknown(1, 2)"),
           Expectation.new(input: "sinn(1)"),
           Expectation.new(input: "coss(2)"),
-          Expectation.new(input: "tanhh(3)"),
+          Expectation.new(input: "sin(3, )"),
+          Expectation.new(input: "cos(,)"),
         ]
       end
 
-      it "raises a Calculator::ParseTokenError" do
+      it "raises a Calculator::UnexpectedTokenError" do
         expectations.each do |expected|
-          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
-           "raises a Calculator::ParseTokenError with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise Calculator::UnexpectedTokenError,
+           "raises a Calculator::UnexpectedTokenError with input #{expected.input}"
         end
       end
     end
@@ -258,17 +335,67 @@ describe "Calculator::Evaluator" do
       end
 
       describe "with one operand" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "1 +"),
+            Expectation.new(input: "+ 1"),
+            Expectation.new(input: "1 -"),
+            Expectation.new(input: "1 *"),
+            Expectation.new(input: "* 1"),
+            Expectation.new(input: "1 /"),
+            Expectation.new(input: "/ 1"),
+            Expectation.new(input: "1 %"),
+            Expectation.new(input: "% 1"),
+            Expectation.new(input: "2 ^"),
+            Expectation.new(input: "^ 2"),
+          ]
+        end
+
         it "raises a Calculator::OperandError" do
+          expectations.each do |expected|
+            -> { subject.eval(expected.input) }.must_raise Calculator::OperandError,
+             "raises a Calculator::OperandError with input #{expected.input}"
+          end
         end
       end
 
       describe "with no operands" do
+        let(:expectations) do
+          [
+            Expectation.new(input: "+"),
+            Expectation.new(input: "*"),
+            Expectation.new(input: "/"),
+            Expectation.new(input: "%"),
+            Expectation.new(input: "^"),
+          ]
+        end
+
         it "raises a Calculator::OperandError" do
+          expectations.each do |expected|
+            -> { subject.eval(expected.input) }.must_raise Calculator::OperandError,
+             "raises a Calculator::OperandError with input #{expected.input}"
+          end
         end
       end
 
       describe "when dividing by zero" do
         it "raises a Calculator::DivideByZeroError" do
+          -> { subject.eval("1 / 0") }.must_raise Calculator::DivideByZeroError,
+           "raises a Calculator::DivideByZeroError"
+        end
+      end
+    end
+
+    describe "when the input is a unary operator" do
+      describe "with one operand" do
+        it "returns the correct result" do
+          subject.eval("-1").must_equal(-1)
+        end
+      end
+
+      describe "with no operand" do
+        it "raises a Calculator::OperandError" do
+          -> { subject.eval("-") }.must_raise Calculator::OperandError
         end
       end
     end
@@ -290,10 +417,10 @@ describe "Calculator::Evaluator" do
         ]
       end
 
-      it "raises a Calculator::ParseTokenError" do
+      it "raises a Calculator::Error" do
         expectations.each do |expected|
-          -> { subject.eval(expected.input) }.must_raise Calculator::ParseTokenError,
-           "raises a Calculator::ParseTokenError with input #{expected.input}"
+          -> { subject.eval(expected.input) }.must_raise Calculator::Error,
+           "raises a Calculator::Error with input #{expected.input}"
         end
       end
     end
@@ -306,6 +433,41 @@ describe "Calculator::Evaluator" do
 
       describe "when the paranthesis are unmatched" do
         it "raises a Calculator::UnamatchedParanthesis" do
+        end
+      end
+    end
+
+    describe "when the input contains a trailing comma" do
+    end
+
+    describe "when the input contains an unexpected number" do
+    end
+
+    describe "when the input contains composite functions" do
+      let(:expectations) do
+        [
+          Expectation.new(
+            input: "atan2(sin(1), tan(2))",
+            output: Math.atan2(Math.sin(1), Math.tan(2))
+          ),
+          Expectation.new(
+            input: "atan2(sin(1) + cos(2), tan(Pi) - sin(Tau))",
+            output: Math.atan2(Math.sin(1) + Math.cos(2), Math.tan(Math::PI) - Math.sin(Math::PI * 2))
+          ),
+          Expectation.new(
+            input: "atan2(sin(cos(tan(1))), tan(2))",
+            output: Math.atan2(Math.sin(Math.cos(Math.tan(1))), Math.tan(2))
+          ),
+          Expectation.new(
+            input: "atan2(sin(1 + 2 - cos(3)), 4 * tan(5 / 6 ^ 7))",
+            output: Math.atan2(Math.sin(1 + 2 - Math.cos(3)), 4 * Math.tan(5.fdiv(6**7)))
+          ),
+        ]
+      end
+
+      it "returns the correct result" do
+        expectations.each do |expect|
+          subject.eval(expect.input).must_equal expect.output
         end
       end
     end
