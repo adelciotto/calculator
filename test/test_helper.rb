@@ -5,5 +5,3 @@ require "minitest/autorun"
 
 require "minitest/reporters"
 Minitest::Reporters.use!
-
-Expectation = Struct.new(:input, :output, keyword_init: true)

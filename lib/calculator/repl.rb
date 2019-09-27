@@ -1,5 +1,5 @@
 require "readline"
-require "calculator/errors"
+require "calculator/errors/error"
 require "calculator/version"
 
 module Calculator
