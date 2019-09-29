@@ -2,11 +2,21 @@ require "test_helper"
 
 class TestParser < Minitest::Test
   def test_with_no_input
-    assert_equal [], Calculator::Parser.new.parse
+    expected_err = "no EOF token"
+
+    err = assert_raises Calculator::Errors::ParserError do
+      Calculator::Parser.new.parse
+    end
+    assert_equal expected_err, err.message
   end
 
   def test_with_no_tokens
-    assert_equal [], Calculator::Parser.new([]).parse
+    expected_err = "no EOF token"
+
+    err = assert_raises Calculator::Errors::ParserError do
+      Calculator::Parser.new([]).parse
+    end
+    assert_equal expected_err, err.message
   end
 
   def test_with_eof_tokens

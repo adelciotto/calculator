@@ -1,6 +1,5 @@
 # TODO
 
-- [] Use EOF token in parser
 - [] Enhance postfix with function_begin and function_end nodes
 - [] More advanced test cases for parser
 - [] Basic test cases for evaluator 

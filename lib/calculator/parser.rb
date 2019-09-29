@@ -81,6 +81,10 @@ module Calculator
       @result = []
       @stack = []
       @errors = []
+
+      unless @tokens.last && tokens.last.type == :eof
+        raise Errors::ParserError.new("no EOF token")
+      end
     end
 
     def parse
@@ -197,9 +201,8 @@ module Calculator
       @stack.last
     end
 
-    # TODO: replace with checking for EOF token
     def peek_next_token
-      return NULL_TOKEN if @current >= @tokens.length - 1
+      return NULL_TOKEN if at_end?
       @tokens[@current + 1]
     end
 
@@ -209,7 +212,7 @@ module Calculator
     end
 
     def at_end?
-      @current >= @tokens.length
+      @tokens[@current].type == :eof
     end
 
     def raise_error(msg, position = @current)
