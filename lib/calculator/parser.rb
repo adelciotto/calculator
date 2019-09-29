@@ -1,12 +1,14 @@
 require "calculator/errors/parser_error"
 
 module Calculator
+  # TODO: simplify these classes into structs
   class PostfixNode
-    attr_reader :type, :value
+    attr_reader :type, :value, :position
 
-    def initialize(type, value = "")
+    def initialize(type, value, position)
       @type = type
       @value = value
+      @position = position
     end
 
     def ==(other)
@@ -16,15 +18,15 @@ module Calculator
     protected
 
     def state
-      [@type, @value]
+      [@type, @value, @position]
     end
   end
 
   class OperatorNode < PostfixNode
     attr_reader :precedance, :associativity
 
-    def initialize(type, value)
-      super(type, value)
+    def initialize(type, value, position)
+      super(type, value, position)
 
       case value
       when :-
@@ -70,7 +72,7 @@ module Calculator
 
   class Parser
     NULL_TOKEN = Token.new(:null, "", 0).freeze
-    NULL_POSTFIX_NODE = PostfixNode.new(:null, "")
+    NULL_POSTFIX_NODE = PostfixNode.new(:null, "", 0)
 
     def initialize(tokens = [], input = "")
       @tokens = tokens
@@ -95,14 +97,19 @@ module Calculator
           when :opening_paren
             # TODO: check if top of stack is func
             # TODO: append 'end_function' postfix node
-            @stack << PostfixNode.new(:opening_paren)
+            @stack << PostfixNode.new(:opening_paren, "", token.position)
           when :closing_paren
-            @result << @stack.pop until peek_stack.type == :opening_paren
-            @stack.pop if peek_stack.type == :opening_paren
+            until peek_stack.type == :opening_paren || peek_stack.type == :null
+              @result << @stack.pop
+            end
+            raise_error("unmatched paranthesis", token.position) if peek_stack.type == :null
+            @stack.pop # discard remaining paren off stack
           when :comma
             # TODO: check that the token is used inside function
-            # TODO: check that peek_next is not end of function
             @result << @stack.pop until peek_stack.type == :opening_paren
+            validate_next_token([:operator, :number, :identifier])
+          when :eof
+            break
           else
             raise_error("illegal token '#{token.literal}'")
           end
@@ -115,7 +122,10 @@ module Calculator
 
       raise Errors::ParserError, @errors.join("\n") unless @errors.empty?
 
-      @result << @stack.pop until @stack.empty?
+      until @stack.empty?
+        raise_error("unmatched paranthesis", peek_stack.position) if peek_stack.type == :opening_paren
+        @result << @stack.pop
+      end
       @result
     end
 
@@ -123,26 +133,30 @@ module Calculator
 
     def parse_number(token)
       number = str_to_number(token.literal)
-      @result << PostfixNode.new(:number, number)
+      @result << PostfixNode.new(:number, number, token.position)
+      validate_next_token([:operator, :closing_paren, :comma, :eof])
     rescue ArgumentError => e
       raise_error("failed to parse number '#{token.literal}': #{e.message}")
     end
 
     def parse_identifier(token)
       if peek_next_token.type == :opening_paren
-        @stack << PostfixNode.new(:function, token.literal.to_sym)
+        @stack << PostfixNode.new(:function, token.literal.to_sym, token.position)
       else
-        @result << PostfixNode.new(:constant, token.literal.to_sym)
+        @result << PostfixNode.new(:constant, token.literal.to_sym, token.position)
+        validate_next_token([:operator, :closing_paren, :comma, :eof])
       end
     end
 
     def parse_operator(token)
       if unary_operator?(token)
-        @stack << OperatorNode.new(:unary_operator, token.literal.to_sym)
+        @stack << OperatorNode.new(:unary_operator, token.literal.to_sym, token.position)
+        validate_next_token([:number, :opening_paren, :identifier])
       else
-        operator = OperatorNode.new(:binary_operator, token.literal.to_sym)
+        operator = OperatorNode.new(:binary_operator, token.literal.to_sym, token.position)
         @result << @stack.pop while stack_has_greater_precedance?(operator)
         @stack << operator
+        validate_next_token([:number, :opening_paren, :identifier, :operator])
       end
     end
 
@@ -165,6 +179,13 @@ module Calculator
       end
     end
 
+    def validate_next_token(valid_types)
+      next_token = peek_next_token
+      unless valid_types.include?(next_token.type)
+        raise_error("unexpected token #{next_token}", next_token.position)
+      end
+    end
+
     def str_to_number(str)
       Integer(str)
     rescue ArgumentError
@@ -176,6 +197,7 @@ module Calculator
       @stack.last
     end
 
+    # TODO: replace with checking for EOF token
     def peek_next_token
       return NULL_TOKEN if @current >= @tokens.length - 1
       @tokens[@current + 1]

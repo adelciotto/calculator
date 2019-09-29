@@ -2,7 +2,8 @@ require "test_helper"
 
 class TestScanner < Minitest::Test
   def test_with_no_input
-    assert_equal [], Calculator::Scanner.new.tokenize
+    expected_tokens = [Calculator::Token.new(:eof, "", 0)]
+    assert_equal expected_tokens, Calculator::Scanner.new.tokenize
   end
 
   def test_with_valid_int
@@ -16,7 +17,10 @@ class TestScanner < Minitest::Test
     ]
 
     inputs.each do |input|
-      expected_tokens = [Calculator::Token.new(:number, input, 0)]
+      expected_tokens = [
+        Calculator::Token.new(:number, input, 0),
+        Calculator::Token.new(:eof, "", input.length),
+      ]
       assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
     end
   end
@@ -44,7 +48,10 @@ class TestScanner < Minitest::Test
     ]
 
     inputs.each do |input|
-      expected_tokens = [Calculator::Token.new(:number, input, 0)]
+      expected_tokens = [
+        Calculator::Token.new(:number, input, 0),
+        Calculator::Token.new(:eof, "", input.length),
+      ]
       assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
     end
   end
@@ -83,7 +90,10 @@ class TestScanner < Minitest::Test
     ]
 
     inputs.each do |input|
-      expected_tokens = [Calculator::Token.new(:number, input, 0)]
+      expected_tokens = [
+        Calculator::Token.new(:number, input, 0),
+        Calculator::Token.new(:eof, "", input.length),
+      ]
       assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
     end
   end
@@ -119,7 +129,10 @@ class TestScanner < Minitest::Test
     ]
 
     inputs.each do |input|
-      expected_tokens = [Calculator::Token.new(:operator, input, 0)]
+      expected_tokens = [
+        Calculator::Token.new(:operator, input, 0),
+        Calculator::Token.new(:eof, "", input.length),
+      ]
       assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
     end
   end
@@ -147,7 +160,10 @@ class TestScanner < Minitest::Test
     ]
 
     inputs.each do |input|
-      expected_tokens = [Calculator::Token.new(:identifier, input, 0)]
+      expected_tokens = [
+        Calculator::Token.new(:identifier, input, 0),
+        Calculator::Token.new(:eof, "", input.length),
+      ]
       assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
     end
   end
@@ -159,6 +175,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:opening_paren, "(", 3),
       Calculator::Token.new(:number, "1", 4),
       Calculator::Token.new(:closing_paren, ")", 5),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -171,6 +188,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:opening_paren, "(", 3),
       Calculator::Token.new(:number, "1.23", 4),
       Calculator::Token.new(:closing_paren, ")", 8),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -183,6 +201,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:opening_paren, "(", 3),
       Calculator::Token.new(:number, "1e-2", 4),
       Calculator::Token.new(:closing_paren, ")", 8),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -195,6 +214,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:opening_paren, "(", 3),
       Calculator::Token.new(:identifier, "pi", 4),
       Calculator::Token.new(:closing_paren, ")", 6),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -213,6 +233,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:operator, "/", 13),
       Calculator::Token.new(:number, "180", 15),
       Calculator::Token.new(:closing_paren, ")", 18),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -235,6 +256,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:operator, "+", 27),
       Calculator::Token.new(:number, "2", 29),
       Calculator::Token.new(:closing_paren, ")", 30),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -261,6 +283,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:number, "3", 29),
       Calculator::Token.new(:operator, "%", 31),
       Calculator::Token.new(:number, "5", 33),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -287,6 +310,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:number, "3", 15),
       Calculator::Token.new(:operator, "%", 16),
       Calculator::Token.new(:number, "5", 17),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -313,6 +337,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:number, "3e4", 45),
       Calculator::Token.new(:operator, "%", 49),
       Calculator::Token.new(:number, "5.0", 51),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -334,6 +359,7 @@ class TestScanner < Minitest::Test
       Calculator::Token.new(:operator, "*", 20),
       Calculator::Token.new(:identifier, "pi", 22),
       Calculator::Token.new(:closing_paren, ")", 24),
+      Calculator::Token.new(:eof, "", input.length),
     ]
 
     assert_equal expected_tokens, Calculator::Scanner.new(input).tokenize
@@ -347,8 +373,9 @@ class TestScanner < Minitest::Test
                   ^
     TEXT
 
-    err = -> { Calculator::Scanner.new(input).tokenize }
-      .must_raise Calculator::Errors::ScannerError
+    err = assert_raises Calculator::Errors::ScannerError do
+      Calculator::Scanner.new(input).tokenize
+    end
     assert_equal expected_err, err.message
   end
 
@@ -372,8 +399,9 @@ class TestScanner < Minitest::Test
                                           ^
     TEXT
 
-    err = -> { Calculator::Scanner.new(input).tokenize }
-      .must_raise Calculator::Errors::ScannerError
+    err = assert_raises Calculator::Errors::ScannerError do
+      Calculator::Scanner.new(input).tokenize
+    end
     assert_equal expected_err, err.message
   end
 end

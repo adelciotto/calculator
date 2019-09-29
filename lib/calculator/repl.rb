@@ -1,5 +1,8 @@
 require "readline"
 require "calculator/errors/error"
+require "calculator/scanner"
+require "calculator/parser"
+require "calculator/evaluator"
 require "calculator/version"
 
 module Calculator
@@ -20,10 +23,6 @@ module Calculator
   EXIT_COMMAND = "exit"
 
   class Repl
-    def initialize(evaluator)
-      @evaluator = evaluator
-    end
-
     def start
       # Store the state of the terminal.
       stty_save = `stty -g`.chomp
@@ -35,17 +34,19 @@ module Calculator
           when HELP_COMMAND
             puts(HELP_MSG)
           when LIST_FUNCTIONS_COMMAND
-            puts(@evaluator.supported_functions)
+            puts(Evaluator.list_functions)
           when LIST_CONSTANTS_COMMAND
-            puts(@evaluator.supported_constants)
+            puts(Evaluator.list_constants)
           when LIST_OPERATORS_COMMAND
-            puts(@evaluator.supported_operators)
+            puts(Evaluator.list_operators)
           when EXIT_COMMAND
             raise Interrupt
           else
             begin
-              result = @evaluator.eval(input)
-            rescue Error => e
+              tokens = Scanner.new(input).tokenize
+              postfix_nodes = Parser.new(tokens, input).parse
+              result = Evaluator.new(postfix_nodes, input).eval
+            rescue Errors::Error => e
               puts("ERROR: #{e}")
             else
               puts("=> #{result}")

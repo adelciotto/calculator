@@ -2,7 +2,11 @@ require "calculator/errors/error"
 require "calculator/errors/scanner_error"
 
 module Calculator
-  Token = Struct.new(:type, :literal, :position)
+  Token = Struct.new(:type, :literal, :position) {
+    def to_s
+      "{type: #{type}, literal: '#{literal}'}"
+    end
+  }
 
   class Scanner
     LETTER_PATTERN = /\A[a-zA-Z]\Z/.freeze
@@ -55,6 +59,7 @@ module Calculator
       end
 
       raise Errors::ScannerError, @errors.join("\n") unless @errors.empty?
+      @tokens << Token.new(:eof, "", @current)
       @tokens
     end
 

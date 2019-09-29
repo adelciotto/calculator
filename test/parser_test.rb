@@ -9,16 +9,26 @@ class TestParser < Minitest::Test
     assert_equal [], Calculator::Parser.new([]).parse
   end
 
+  def test_with_eof_tokens
+    assert_equal [], Calculator::Parser.new([Calculator::Token.new(:eof, "", 0)]).parse
+  end
+
   def test_with_number_token
-    input_tokens = [Calculator::Token.new(:number, "1", 0)]
-    expected_result = [Calculator::PostfixNode.new(:number, 1)]
+    input_tokens = [
+      Calculator::Token.new(:number, "1", 0),
+      Calculator::Token.new(:eof, "", 0),
+    ]
+    expected_result = [Calculator::PostfixNode.new(:number, 1, 0)]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
   end
 
   def test_with_identifier_constant
-    input_tokens = [Calculator::Token.new(:identifier, "pi", 0)]
-    expected_result = [Calculator::PostfixNode.new(:constant, :pi)]
+    input_tokens = [
+      Calculator::Token.new(:identifier, "pi", 0),
+      Calculator::Token.new(:eof, "", 2),
+    ]
+    expected_result = [Calculator::PostfixNode.new(:constant, :pi, 0)]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
   end
@@ -29,10 +39,11 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:opening_paren, "(", 4),
       Calculator::Token.new(:identifier, "pi", 5),
       Calculator::Token.new(:closing_paren, ")", 7),
+      Calculator::Token.new(:eof, "", 7),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:constant, :pi),
-      Calculator::PostfixNode.new(:function, :sin),
+      Calculator::PostfixNode.new(:constant, :pi, 5),
+      Calculator::PostfixNode.new(:function, :sin, 0),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -44,12 +55,13 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 1),
       Calculator::Token.new(:operator, "+", 4),
       Calculator::Token.new(:number, "2", 6),
+      Calculator::Token.new(:eof, "", 6),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::OperatorNode.new(:unary_operator, :-),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :+),
+      Calculator::PostfixNode.new(:number, 1, 1),
+      Calculator::OperatorNode.new(:unary_operator, :-, 0),
+      Calculator::PostfixNode.new(:number, 2, 6),
+      Calculator::OperatorNode.new(:binary_operator, :+, 4),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -60,11 +72,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "+", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :+),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :+, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -75,11 +88,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "-", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :-),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :-, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -90,11 +104,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "*", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :*),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :*, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -105,11 +120,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "/", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :/),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :/, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -120,11 +136,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "%", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :%),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :%, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -135,11 +152,12 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "1", 0),
       Calculator::Token.new(:operator, "^", 2),
       Calculator::Token.new(:number, "2", 4),
+      Calculator::Token.new(:eof, "", 4),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :^),
+      Calculator::PostfixNode.new(:number, 1, 0),
+      Calculator::PostfixNode.new(:number, 2, 4),
+      Calculator::OperatorNode.new(:binary_operator, :^, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
@@ -164,23 +182,24 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:number, "3", 29),
       Calculator::Token.new(:operator, "%", 31),
       Calculator::Token.new(:number, "5", 33),
+      Calculator::Token.new(:eof, "", 33),
     ]
     expected_result = [
-      Calculator::PostfixNode.new(:number, 3),
-      Calculator::PostfixNode.new(:number, 4),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::OperatorNode.new(:binary_operator, :*),
-      Calculator::PostfixNode.new(:number, 1),
-      Calculator::PostfixNode.new(:number, 5),
-      Calculator::OperatorNode.new(:binary_operator, :-),
-      Calculator::PostfixNode.new(:number, 2),
-      Calculator::PostfixNode.new(:number, 3),
-      Calculator::OperatorNode.new(:binary_operator, :^),
-      Calculator::OperatorNode.new(:binary_operator, :^),
-      Calculator::OperatorNode.new(:binary_operator, :/),
-      Calculator::PostfixNode.new(:number, 5),
-      Calculator::OperatorNode.new(:binary_operator, :%),
-      Calculator::OperatorNode.new(:binary_operator, :+),
+      Calculator::PostfixNode.new(:number, 3, 0),
+      Calculator::PostfixNode.new(:number, 4, 4),
+      Calculator::PostfixNode.new(:number, 2, 9),
+      Calculator::OperatorNode.new(:binary_operator, :*, 6),
+      Calculator::PostfixNode.new(:number, 1, 15),
+      Calculator::PostfixNode.new(:number, 5, 19),
+      Calculator::OperatorNode.new(:binary_operator, :-, 17),
+      Calculator::PostfixNode.new(:number, 2, 25),
+      Calculator::PostfixNode.new(:number, 3, 29),
+      Calculator::OperatorNode.new(:binary_operator, :^, 27),
+      Calculator::OperatorNode.new(:binary_operator, :^, 23),
+      Calculator::OperatorNode.new(:binary_operator, :/, 11),
+      Calculator::PostfixNode.new(:number, 5, 33),
+      Calculator::OperatorNode.new(:binary_operator, :%, 31),
+      Calculator::OperatorNode.new(:binary_operator, :+, 2),
     ]
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse

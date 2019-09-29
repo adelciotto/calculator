@@ -1,8 +1,13 @@
 # TODO
 
-- [x] Implement the command line REPL
-- [x] Unit tests for basic cases
-- [ ] Complete unit tests for more advanced error cases. Add new error handling code where necessary
-- [ ] Refactor parse method and try to reduce the complexity
-- [ ] Refactor evaluate method and try to reduce complexity
-- [ ] Document all the code and complete README
+- [] Use EOF token in parser
+- [] Enhance postfix with function_begin and function_end nodes
+- [] More advanced test cases for parser
+- [] Basic test cases for evaluator 
+- [] Error handling in evaluator (too few args for operators and functions, divide by zero, etc)
+- [] More advanced test cases for evaluator
+- [] Refactor/Simplify the Postfix and Operator node classes
+- [] Reuse error reporting code between scanner, parser and evaluator?
+- [] Simplify parser. Find ways to make parsing closing_paren more simple
+- [] Write README
+- [] Publish to Website
