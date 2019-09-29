@@ -46,7 +46,7 @@ module Calculator
         next unless arity.positive?
 
         func = Function.new(method.name, arity, method.to_proc)
-        result[method.name.to_s] = func
+        result[method.name] = func
         result
       }.freeze
     end

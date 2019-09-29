@@ -5,6 +5,10 @@ module Calculator
   class PostfixNode
     attr_reader :type, :value, :position
 
+    def self.new_null_node
+      PostfixNode.new(:null, "", 0)
+    end
+
     def initialize(type, value, position)
       @type = type
       @value = value
@@ -71,15 +75,13 @@ module Calculator
   end
 
   class Parser
-    NULL_TOKEN = Token.new(:null, "", 0).freeze
-    NULL_POSTFIX_NODE = PostfixNode.new(:null, "", 0)
-
     def initialize(tokens = [], input = "")
       @tokens = tokens
       @input = input
       @current = 0
       @result = []
       @stack = []
+      @in_function = false
       @errors = []
 
       unless @tokens.last && tokens.last.type == :eof
@@ -99,15 +101,15 @@ module Calculator
           when :identifier
             parse_identifier(token)
           when :opening_paren
-            # TODO: check if top of stack is func
-            # TODO: append 'end_function' postfix node
+            @in_function = peek_stack.type == :function
             @stack << PostfixNode.new(:opening_paren, "", token.position)
+            @result << PostfixNode.new(:end_function, "", 0) if @in_function
           when :closing_paren
             until peek_stack.type == :opening_paren || peek_stack.type == :null
               @result << @stack.pop
             end
             raise_error("unmatched paranthesis", token.position) if peek_stack.type == :null
-            @stack.pop # discard remaining paren off stack
+            @stack.pop # discard remaining opening_paren from stack
           when :comma
             # TODO: check that the token is used inside function
             @result << @stack.pop until peek_stack.type == :opening_paren
@@ -197,17 +199,17 @@ module Calculator
     end
 
     def peek_stack
-      return NULL_POSTFIX_NODE if @stack.empty?
+      return PostfixNode.new_null_node if @stack.empty?
       @stack.last
     end
 
     def peek_next_token
-      return NULL_TOKEN if at_end?
+      return Token.new_null_token if at_end?
       @tokens[@current + 1]
     end
 
     def peek_prev_token
-      return NULL_TOKEN if @current.zero?
+      return Token.new_null_token if @current.zero?
       @tokens[@current - 1]
     end
 

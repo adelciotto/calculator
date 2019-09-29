@@ -3,6 +3,10 @@ require "calculator/errors/scanner_error"
 
 module Calculator
   Token = Struct.new(:type, :literal, :position) {
+    def self.new_null_token
+      Token.new(:null, "", 0)
+    end
+
     def to_s
       "{type: #{type}, literal: '#{literal}'}"
     end

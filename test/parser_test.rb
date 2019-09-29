@@ -52,6 +52,7 @@ class TestParser < Minitest::Test
       Calculator::Token.new(:eof, "", 7),
     ]
     expected_result = [
+      Calculator::PostfixNode.new(:end_function, "", 0),
       Calculator::PostfixNode.new(:constant, :pi, 5),
       Calculator::PostfixNode.new(:function, :sin, 0),
     ]
