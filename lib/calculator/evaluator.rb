@@ -48,13 +48,16 @@ module Calculator
           @stack << node.type
         when :unary_operator
           value = @stack.pop
+          raise_error("invalid unary operand", node.position) unless value.is_a?(Numeric)
           operator = @@environment.unary_operators[node.value]
           raise_error("unknown unary operator #{node.value}", node.position) if operator.nil?
           @stack << operator.eval_func.call(value)
         when :binary_operator
           lhs, rhs = @stack.pop(2)
+          raise_error("invalid operands provided to operator #{node.value}", node.position) unless lhs.is_a?(Numeric) && rhs.is_a?(Numeric)
           operator = @@environment.binary_operators[node.value]
           raise_error("unknown binary operator #{node.value}", node.position) if operator.nil?
+          raise_error("division by zero", node.position) if rhs.zero?
           @stack << operator.eval_func.call(lhs, rhs)
         when :function
           function = @@environment.functions[node.value]
@@ -66,7 +69,7 @@ module Calculator
           raise_error("incorrect number of args provided to function", node.position) unless args.length == function.num_args
           @stack << function.eval_func.call(*args)
         else
-          raise_error("illegal postfix node '#{node}'", node_index)
+          raise_error("illegal postfix node '#{node}'", node.position)
       end
     end
 

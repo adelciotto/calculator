@@ -9,7 +9,7 @@ module Calculator
       PostfixNode.new(:null, "", 0)
     end
 
-    def initialize(type, value, position)
+    def initialize(type, value, position = 0)
       @type = type
       @value = value
       @position = position
@@ -29,7 +29,7 @@ module Calculator
   class OperatorNode < PostfixNode
     attr_reader :precedance, :associativity
 
-    def initialize(type, value, position)
+    def initialize(type, value, position = 0)
       super(type, value, position)
 
       case value
