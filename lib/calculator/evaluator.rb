@@ -58,7 +58,7 @@ module Calculator
           @stack << operator.eval_func.call(lhs, rhs)
         when :function
           function = @@environment.functions[node.value]
-          args = pop_until { |value| value == :end_function }
+          args = pop_until { |value| value == :end_function }.reverse
           raise_error("no end of function", node.position) if @stack.last.nil?
           raise_error("unknown function #{node.value}", node.position) if function.nil?
 
