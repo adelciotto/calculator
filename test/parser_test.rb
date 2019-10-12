@@ -215,4 +215,41 @@ class TestParser < Minitest::Test
 
     assert_equal expected_result, Calculator::Parser.new(input_tokens).parse
   end
+
+  def test_with_unexpected_comma_token
+    tests = [
+      [
+        Calculator::Token.new(:comma, ",", 0),
+        Calculator::Token.new(:eof, "", 0),
+      ],
+      [
+        Calculator::Token.new(:opening_paren, "(", 0),
+        Calculator::Token.new(:comma, ",", 1),
+        Calculator::Token.new(:closing_paren, ")", 2),
+        Calculator::Token.new(:eof, "", 2),
+      ],
+      [
+        Calculator::Token.new(:opening_paren, "(", 0),
+        Calculator::Token.new(:comma, ",", 1),
+        Calculator::Token.new(:comma, ",", 2),
+        Calculator::Token.new(:closing_paren, ")", 3),
+        Calculator::Token.new(:eof, "", 3),
+      ],
+      [
+        Calculator::Token.new(:identifier, "sin", 0),
+        Calculator::Token.new(:opening_paren, "(", 3),
+        Calculator::Token.new(:comma, ",", 4),
+        Calculator::Token.new(:closing_paren, ")", 5),
+        Calculator::Token.new(:eof, "", 5),
+      ]
+    ]
+    expected_err = "unexpected token {type: comma, literal: ','}"
+
+    tests.each do |input_tokens|
+      err = assert_raises Calculator::Errors::ParserError do
+        Calculator::Parser.new(input_tokens).parse
+      end
+      assert_includes err.message, expected_err
+    end
+  end
 end

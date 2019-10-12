@@ -1,7 +1,6 @@
 # TODO
 
 - [] More advanced test cases for parser
-- [] Prevent comma args outside of function
 - [] More advanced test cases for evaluator
 - [] Handle multiple repeating unary '-' operators (e.g ---5)
 - [] Refactor/Simplify the Postfix and Operator node classes

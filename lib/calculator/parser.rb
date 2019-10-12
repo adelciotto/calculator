@@ -104,16 +104,19 @@ module Calculator
             @in_function = peek_stack.type == :function
             @stack << PostfixNode.new(:opening_paren, "", token.position)
             @result << PostfixNode.new(:end_function, "", 0) if @in_function
+            validate_next_token([:number, :identifier, :closing_paren, :operator])
           when :closing_paren
             until peek_stack.type == :opening_paren || peek_stack.type == :null
               @result << @stack.pop
             end
             raise_error("unmatched paranthesis", token.position) if peek_stack.type == :null
             @stack.pop # discard remaining opening_paren from stack
+            validate_next_token([:operator, :closing_paren, :eof])
           when :comma
             # TODO: check that the token is used inside function
+            raise_error("unexpected token #{token}", token.position) unless @in_function
             @result << @stack.pop until peek_stack.type == :opening_paren
-            validate_next_token([:operator, :number, :identifier])
+            validate_next_token([:operator, :number, :identifier, :opening_paren])
           when :eof
             break
           else
