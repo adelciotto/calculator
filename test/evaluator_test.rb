@@ -66,9 +66,9 @@ class TestParser < Minitest::Test
     ]
     expected_err = "division by zero"
 
-    tests.each do |input|
+    tests.each do |input_postfix_nodes|
       err = assert_raises Calculator::Errors::EvaluatorError do
-        Calculator::Evaluator.new(input).eval
+        Calculator::Evaluator.new(input_postfix_nodes).eval
       end
       assert_includes err.message, expected_err
     end

@@ -7,7 +7,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_valid_int
-    inputs = [
+    tests = [
       "0",
       "1",
       "12",
@@ -16,7 +16,7 @@ class TestScanner < Minitest::Test
       "9999999999",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       expected_tokens = [
         Calculator::Token.new(:number, input, 0),
         Calculator::Token.new(:eof, "", input.length),
@@ -26,12 +26,12 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_invalid_int
-    inputs = [
+    tests = [
       "0a",
       "123abc",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       assert_raises Calculator::Errors::ScannerError do
         Calculator::Scanner.new(input).tokenize
       end
@@ -39,7 +39,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_valid_decimal
-    inputs = [
+    tests = [
       "0.0",
       "1.23",
       "12.3456",
@@ -47,7 +47,7 @@ class TestScanner < Minitest::Test
       "999999999999.9999999999",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       expected_tokens = [
         Calculator::Token.new(:number, input, 0),
         Calculator::Token.new(:eof, "", input.length),
@@ -57,7 +57,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_invalid_decimal
-    inputs = [
+    tests = [
       ".0",
       "1.",
       "1.2.3",
@@ -66,7 +66,7 @@ class TestScanner < Minitest::Test
       "1.+2",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       assert_raises Calculator::Errors::ScannerError do
         Calculator::Scanner.new(input).tokenize
       end
@@ -74,7 +74,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_valid_scientific_notation
-    inputs = [
+    tests = [
       "0E1",
       "0e+1",
       "0e-1",
@@ -89,7 +89,7 @@ class TestScanner < Minitest::Test
       Float::MAX.to_s,
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       expected_tokens = [
         Calculator::Token.new(:number, input, 0),
         Calculator::Token.new(:eof, "", input.length),
@@ -99,7 +99,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_invalid_scientific_notation
-    inputs = [
+    tests = [
       "0e",
       "0E",
       "1e--2",
@@ -111,7 +111,7 @@ class TestScanner < Minitest::Test
       "1e2.3.4",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       assert_raises Calculator::Errors::ScannerError do
         Calculator::Scanner.new(input).tokenize
       end
@@ -119,7 +119,7 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_valid_operator
-    inputs = [
+    tests = [
       "+",
       "-",
       "*",
@@ -128,7 +128,7 @@ class TestScanner < Minitest::Test
       "^",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       expected_tokens = [
         Calculator::Token.new(:operator, input, 0),
         Calculator::Token.new(:eof, "", input.length),
@@ -138,14 +138,14 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_invalid_operator
-    inputs = [
+    tests = [
       "&",
       "$",
       "#",
       "@",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       assert_raises Calculator::Errors::ScannerError do
         Calculator::Scanner.new(input).tokenize
       end
@@ -153,13 +153,13 @@ class TestScanner < Minitest::Test
   end
 
   def test_with_identifier
-    inputs = [
+    tests = [
       "pi",
       "tau",
       "e",
     ]
 
-    inputs.each do |input|
+    tests.each do |input|
       expected_tokens = [
         Calculator::Token.new(:identifier, input, 0),
         Calculator::Token.new(:eof, "", input.length),
