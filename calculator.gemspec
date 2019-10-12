@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["adelciotto"]
   spec.email = ["anthdel.developer@gmail.com"]
 
-  spec.summary = "A simple mathematical expression calculator."
-  spec.description = "A gem that will evaluate simple mathematical expressions."
+  spec.summary = "An interactive mathematical expression calculator."
+  spec.description = "A gem that will provide an interactive repl to evaluator mathematical expressions."
   spec.homepage = "https://github.com/adelciotto/calculator"
   spec.license = "MIT"
 
