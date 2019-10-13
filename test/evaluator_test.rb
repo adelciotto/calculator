@@ -73,12 +73,12 @@ class TestParser < Minitest::Test
       assert_includes err.message, expected_err
     end
   end
-  
+
   def test_with_invalid_operands
     postfix_nodes = [
-        Calculator::PostfixNode.new(:number, 1),
-        Calculator::OperatorNode.new(:binary_operator, :+),
-        Calculator::OperatorNode.new(:binary_operator, :*),
+      Calculator::PostfixNode.new(:number, 1),
+      Calculator::OperatorNode.new(:binary_operator, :+),
+      Calculator::OperatorNode.new(:binary_operator, :*),
     ]
     expected_err = "invalid operands provided to operator +"
 
@@ -103,10 +103,10 @@ class TestParser < Minitest::Test
 
   def test_with_too_many_function_arguments
     postfix_nodes = [
-        Calculator::PostfixNode.new(:end_function, ""),
-        Calculator::PostfixNode.new(:number, 1),
-        Calculator::PostfixNode.new(:number, 2),
-        Calculator::PostfixNode.new(:function, :sin),
+      Calculator::PostfixNode.new(:end_function, ""),
+      Calculator::PostfixNode.new(:number, 1),
+      Calculator::PostfixNode.new(:number, 2),
+      Calculator::PostfixNode.new(:function, :sin),
     ]
     expected_err = "incorrect number of args provided to function"
 

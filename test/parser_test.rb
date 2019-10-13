@@ -241,7 +241,7 @@ class TestParser < Minitest::Test
         Calculator::Token.new(:comma, ",", 4),
         Calculator::Token.new(:closing_paren, ")", 5),
         Calculator::Token.new(:eof, "", 5),
-      ]
+      ],
     ]
     expected_err = "unexpected token {type: comma, literal: ','}"
 
